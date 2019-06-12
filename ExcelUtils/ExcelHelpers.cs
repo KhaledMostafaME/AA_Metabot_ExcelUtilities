@@ -1,4 +1,5 @@
 ﻿using ClosedXML.Excel;
+using System.Text.RegularExpressions;
 
 namespace ExcelUtils
 {
@@ -94,7 +95,7 @@ namespace ExcelUtils
                 var ptSheet = wb.Worksheets.Add(pivotSheetName);
 
                 var pt = ptSheet.PivotTables.Add(pivotName, ptSheet.Cell(pivotStartRow, pivotStartCol), data);
-                
+
                 foreach (var row in pivotRows)
                     pt.RowLabels.Add(row);
 
@@ -104,6 +105,40 @@ namespace ExcelUtils
                 foreach (var value in pivotValues)
                     pt.Values.Add(value);
 
+                wb.Save();
+            }
+        }
+
+        public void SheetAddNamedRange(string workbookName, string sheetName, string range, string rangeName)
+        {
+            using (var wb = new XLWorkbook(workbookName))
+            {
+                wb.TryGetWorksheet(sheetName, out IXLWorksheet ws);
+                ws.Range(range).AddToNamed(rangeName);
+                wb.Save();
+            }
+        }
+
+        public int GetColNumber(string cell)
+        {
+            cell = Regex.Replace(cell, @"[\d]", string.Empty);
+            cell = cell.ToUpperInvariant();
+            int num = 0;
+            for (int i = 0; i < cell.Length; i++)
+            {
+                num *= 26;
+                num += cell[i] - 65 + 1;
+            }
+            return num;
+        }
+
+        public void AddConditionalFormatting(string workbookName, string sheetName, string range, string rule)
+        {
+            using (var wb = new XLWorkbook(workbookName))
+            {
+                wb.TryGetWorksheet(sheetName, out IXLWorksheet ws);
+                //ws.Range(range).AddConditionalFormat().WhenEqualOrGreaterThan(rule);
+                ws.Range(range).AddConditionalFormat().WhenEquals(rule);
                 wb.Save();
             }
         }
